@@ -14,7 +14,7 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.core import HomeAssistant, ServiceCall, ServiceResponse, SupportsResponse
 from homeassistant.helpers import config_validation as cv
 
 from .const import ALLOWED_READ_DIRS, DOMAIN
@@ -59,7 +59,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up HA MCP Tools from a config entry."""
     config_dir = Path(hass.config.config_dir)
 
-    async def handle_list_files(call: ServiceCall) -> dict[str, Any]:
+    async def handle_list_files(call: ServiceCall) -> ServiceResponse:
         """Handle the list_files service call."""
         rel_path = call.data["path"]
         pattern = call.data.get("pattern")
@@ -135,12 +135,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 "files": [],
             }
 
-    # Register the service
+    # Register the service with response support
     hass.services.async_register(
         DOMAIN,
         SERVICE_LIST_FILES,
         handle_list_files,
         schema=SERVICE_LIST_FILES_SCHEMA,
+        supports_response=SupportsResponse.ONLY,
     )
 
     _LOGGER.info("HA MCP Tools initialized successfully")
